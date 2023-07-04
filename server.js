@@ -1,7 +1,7 @@
 const express = require("express");
 const app = express();
 const { MongoClient } = require('mongodb');
-const PORT = 8080;
+const PORT = 5000;
 const url = "mongodb://localhost:27017";
 const dbName = "Project";
 const collectionName = "inventory";
