@@ -92,4 +92,15 @@ app.patch('/items/:id', async (req, res) => {
     }
 })
 
+app.delete('/items/:id', async (req,res) => {
+    try{
+        const {id} = req.params;
+        const filter = {id:id};
+        await inventory.deleteOne(filter);
+        res.status(200).send({message:`the document with id: ${id} was succesfully deleted`});
+    }catch(error){
+        res.status(500).send({error_message: `there was an error deleting the document. error: ${error}`});
+    }
+})
+
 app.listen(PORT, () => console.log(`its alive on http:/localhost:${PORT}`));
