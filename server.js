@@ -2,7 +2,7 @@ const express = require("express");
 const app = express();
 const { MongoClient } = require('mongodb');
 const PORT = 5000;
-const url = "mongodb://localhost:27017";
+const url = 'mongodb://mongo:27017';
 const dbName = "Project";
 const collectionName = "inventory";
 
@@ -11,10 +11,10 @@ const collectionName = "inventory";
 app.use(express.json())
 
 
-function connectToDatabase() {
+async function connectToDatabase() {
   try {
     const client = new MongoClient(url);
-    client.connect();
+    await client.connect().catch((error) => {console.log('got error' + error)}).then((value)=>{console.log('successful connected')});
     const db = client.db(dbName);
     console.log('Connected to MongoDB');
     return db;
@@ -23,10 +23,12 @@ function connectToDatabase() {
     throw error;
   }
 }
+let inventory = undefined;
+(async () => {
+    const db = await connectToDatabase();
+    inventory = db.collection('inventory');
+})()
 
-
-const db = connectToDatabase();
-const inventory = db.collection('inventory');
 // const cursor = inventory.find()
 // const documents = cursor.toArray((err,docs) => {
 //             if(err){
