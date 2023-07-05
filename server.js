@@ -29,17 +29,6 @@ let inventory = undefined;
     inventory = db.collection('inventory');
 })()
 
-// const cursor = inventory.find()
-// const documents = cursor.toArray((err,docs) => {
-//             if(err){
-//                 console.log(err)
-//             }
-//              docs;
-//         }).then((value) => console.log(value));
-
-// console.log(documents);
-       
-
 app.get('/items', async (req,res) => {
     try{
         const cursor = inventory.find();
