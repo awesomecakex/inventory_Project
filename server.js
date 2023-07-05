@@ -14,7 +14,7 @@ app.use(express.json())
 async function connectToDatabase() {
   try {
     const client = new MongoClient(url);
-    await client.connect().catch((error) => {console.log('got error' + error)}).then((value)=>{console.log('successful connected')});
+    await client.connect();
     const db = client.db(dbName);
     console.log('Connected to MongoDB');
     return db;
