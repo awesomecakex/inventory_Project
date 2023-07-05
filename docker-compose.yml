@@ -11,6 +11,8 @@ services:
     environment:
       - MONGO_CONFIG_ROOT_USERNAME:admin
       - MONGO_CONFIG_ROOT_PASSWORD:password
+    volumes:
+      - mongo-data:/data/db
   mongo-express:
     image: mongo-express
     ports:
@@ -22,5 +24,8 @@ services:
     - ME_CONFIG_MONGODB_URL:mongo://admin:password@mongo:27017
     depends_on:
       - mongo
+volumes:
+  mongo-data:
+    driver: local
 
       
