@@ -1,8 +1,8 @@
 const express = require("express");
 const app = express();
 const { MongoClient } = require('mongodb');
-const PORT = 8080;
-const url = "mongodb://localhost:27017";
+const PORT = 5000;
+const url = 'mongodb://mongo:27017';
 const dbName = "Project";
 const collectionName = "inventory";
 
@@ -11,10 +11,10 @@ const collectionName = "inventory";
 app.use(express.json())
 
 
-function connectToDatabase() {
+async function connectToDatabase() {
   try {
     const client = new MongoClient(url);
-    client.connect();
+    await client.connect();
     const db = client.db(dbName);
     console.log('Connected to MongoDB');
     return db;
@@ -23,25 +23,19 @@ function connectToDatabase() {
     throw error;
   }
 }
-
-
-const db = connectToDatabase();
-const inventory = db.collection('inventory');
-// const cursor = inventory.find()
-// const documents = cursor.toArray((err,docs) => {
-//             if(err){
-//                 console.log(err)
-//             }
-//              docs;
-//         }).then((value) => console.log(value));
-
-// console.log(documents);
-       
+let inventory = undefined;
+(async () => {
+    const db = await connectToDatabase();
+    inventory = db.collection('inventory');
+})()
 
 app.get('/items', async (req,res) => {
     try{
         const cursor = inventory.find();
         const docs = await cursor.toArray();
+        for (i in docs){
+            delete docs[i]["_id"];
+        }
         res.status(200).json(docs);
     }catch(error){
         res.status(500).send({error_message:`An error was raised while executing ${error}`});
@@ -56,6 +50,7 @@ app.get('/items/:id', async (req,res) => {
         const query = {id:id};
         const cursor = inventory.find(query);
         const docs = await cursor.toArray();
+        delete docs[0]["_id"];
         res.status(200).json(docs);
         }catch(error){
         res.status(500).send({error_message:`An error was raised while executing ${error}`});
@@ -66,10 +61,10 @@ app.post('/items', async (req,res) => {
     try{
         const id = Date.now().toString(36) + Math.random().toString(36);
         const {name, amount} = req.body;
-        const document = {'id':id,'name':name,'amount':amount};
+        const item_document = {'id':id,'name':name,'amount':amount};
         await inventory.insertOne(document);
-        const string = `{"id":"${id}", "name":"${name}", "amount":${amount}}`.replace(/[\\"]/g, '');
-        res.status(200).send({message:`Document id ${id} was added Succesfully. The document added: ${string}. `});
+        const item_string = `{"id":"${id}", "name":"${name}", "amount":${amount}}`.replace(/[\\"]/g, '');
+        res.status(200).send({message:`Document id ${id} was added Succesfully. The document added: ${item_string}. `});
     }catch(error){
         res.status(500).send({error_message:`There was an error adding the item you sent ${error}` });
     }
@@ -78,13 +73,14 @@ app.patch('/items/:id', async (req, res) => {
     try{
         const {id} = req.params;
         const filter = {id:id};
-        const update = {$set:{}};
-        if(req.body.name) update.$set.name = req.body.name;
-        if(req.body.amount) update.$set.amount = req.body.amount;
-        await inventory.updateOne(filter, update);
+        const update_command = {$set:{}};
+        if(req.body.name) update_command.$set.name = req.body.name;
+        if(req.body.amount) update_command.$set.amount = req.body.amount;
+        await inventory.updateOne(filter, update_command);
         const query = {id:id};
         const cursor = inventory.find(query);
-        const docs = await cursor.toArray();
+        let docs = await cursor.toArray();
+        delete docs[0]["_id"];
         res.status(200).json({message:`the item with id: ${id} has beed succesfully updated`, updated_doc:docs});
 
     }catch(error){
